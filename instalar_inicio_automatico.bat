@@ -7,6 +7,9 @@ if not exist "%~dp0EtiquetasCofares.exe" (
   pause
   exit /b 1
 )
+rem Quita la marca "descargado de Internet" para que Windows no pida
+rem confirmacion ("editor desconocido") cada vez que se abre el programa.
+powershell -NoProfile -Command "Get-ChildItem -LiteralPath '%~dp0' -Recurse | Unblock-File"
 powershell -NoProfile -Command ^
   "$s=(New-Object -ComObject WScript.Shell).CreateShortcut([Environment]::GetFolderPath('Startup')+'\Etiquetas Cofares.lnk');" ^
   "$s.TargetPath='%~dp0EtiquetasCofares.exe'; $s.Arguments='--minimizado'; $s.WorkingDirectory='%~dp0'; $s.Save()" || goto :error

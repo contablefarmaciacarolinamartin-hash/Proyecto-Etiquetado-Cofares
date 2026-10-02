@@ -34,7 +34,12 @@ La ventana tiene además:
    Es lo que permite usar tu plantilla `.lbx` tal cual.
 3. Copia la carpeta `EtiquetasCofares` (con el `.exe`, `config.ini` y
    `plantilla.lbx`) a, por ejemplo, `C:\Impresora envios cofares\`.
-4. Haz doble clic en `instalar_inicio_automatico.bat`. Arranca el programa y lo
+4. **Antes de descomprimir** el zip descargado: clic derecho → *Propiedades* →
+   marca **Desbloquear** → *Aceptar*. Así Windows no avisa de "editor
+   desconocido" cada vez que se abre el programa. (Si ya lo descomprimiste, no
+   pasa nada: el paso siguiente también lo arregla.)
+5. Haz doble clic en `instalar_inicio_automatico.bat` (si Windows avisa, pulsa
+   *Ejecutar* esta única vez). Arranca el programa y lo
    deja configurado para que se abra solo cada vez que se encienda el ordenador.
 
 ### ¿De dónde saco el .exe?
