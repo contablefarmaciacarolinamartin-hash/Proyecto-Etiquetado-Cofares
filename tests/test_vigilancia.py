@@ -23,8 +23,7 @@ def entorno(tmp_path, monkeypatch):
     monkeypatch.setattr(app_mod.messagebox, "showerror", lambda *a, **k: errores.append(a))
     cfg = {
         "carpeta": str(tmp_path), "patron": "etiqueta_*.pdf",
-        "impresos": str(tmp_path / "Etiquetas impresas"),
-        "errores": str(tmp_path / "Etiquetas con error"),
+        "marca_impresa": "!", "marca_error": "#",
         "pendientes": False, "impresora": "x", "plantilla": "x", "copias": 1,
         "formatos": {"titulo": "Envío: {codigo}", "codigo": "{codigo}",
                      "remite": "Remite: {remite}", "destino": "Destino: {destino}",
@@ -49,7 +48,8 @@ def test_imprime_y_mueve(entorno):
     assert errores == []
     assert len(impresas) == 1
     assert impresas[0]["n1"] == "N1:35105/1" and impresas[0]["titulo"] == "Envío: FM0000921557"
-    assert os.listdir(carpeta / "Etiquetas impresas") == ["etiqueta_FM0000921557_1.pdf"]
+    assert (carpeta / "!etiqueta_FM0000921557_1.pdf").exists()
+    assert not (carpeta / "etiqueta_FM0000921557_1.pdf").exists()
     # lo que ya estaba al arrancar y lo que no encaja con el patrón no se toca
     assert (carpeta / "etiqueta_FM0000000000_1.pdf").exists() and (carpeta / "otro.pdf").exists()
     vueltas(app)
@@ -67,9 +67,28 @@ def test_descarga_a_medias_no_imprime_hasta_completar(entorno):
     assert len(impresas) == 1 and errores == []
 
 
-def test_pdf_ilegible_va_a_errores(entorno):
+def test_pdf_ilegible_se_marca_con_almohadilla(entorno):
     app, carpeta, impresas, errores = entorno
     (carpeta / "etiqueta_roto.pdf").write_bytes(b"%PDF-basura")
     vueltas(app, 10)
     assert impresas == [] and len(errores) == 1
-    assert os.listdir(carpeta / "Etiquetas con error") == ["etiqueta_roto.pdf"]
+    assert (carpeta / "#etiqueta_roto.pdf").exists()
+
+
+def test_misma_etiqueta_descargada_dos_veces(entorno):
+    app, carpeta, impresas, errores = entorno
+    for _ in range(2):
+        shutil.copy(PDF, carpeta)
+        vueltas(app)
+    assert len(impresas) == 2
+    assert (carpeta / "!etiqueta_FM0000921557_1.pdf").exists()
+    assert (carpeta / "!etiqueta_FM0000921557_1 (1).pdf").exists()
+
+
+def test_patron_amplio_no_reimprime_marcados(entorno):
+    app, carpeta, impresas, errores = entorno
+    app.cfg["patron"] = "*.pdf"
+    shutil.copy(PDF, carpeta / "!ya_impresa.pdf")
+    shutil.copy(PDF, carpeta / "#con_error.pdf")
+    vueltas(app)
+    assert impresas == []

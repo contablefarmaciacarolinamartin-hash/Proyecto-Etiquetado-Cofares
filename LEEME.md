@@ -10,8 +10,10 @@ ningún clic más.
 2. Cuando aparece un PDF que se llama `etiqueta_*.pdf`, espera a que termine de
    descargarse y lee: código FM, Remite, Destino, Centro, N1 y N3.
 3. Rellena esos datos en `plantilla.lbx` y la imprime en la *Brother QL-800 COFARES*.
-4. Mueve el PDF a `Descargas\Etiquetas impresas` (o a `Descargas\Etiquetas con error`
-   si algo falla, con un aviso en pantalla). Así nunca se imprime dos veces.
+4. Le pone una marca delante del nombre para no imprimirlo dos veces:
+   - `!etiqueta_FM0000921557_1.pdf` → ya impresa.
+   - `#etiqueta_FM0000921557_1.pdf` → no se pudo leer o imprimir (sale además un
+     aviso en pantalla). Para reintentarla, quita el `#` del nombre.
 
 Otros PDF de Descargas no se tocan. Los PDF de etiqueta que ya estaban en
 Descargas al abrir el programa tampoco se imprimen (para evitar sorpresas).
@@ -26,8 +28,9 @@ La ventana tiene además:
 
 1. **Driver de la impresora**: la QL-800 ya debe aparecer en Windows con el nombre
    `Brother QL-800 COFARES` (si tiene otro nombre, cámbialo en `config.ini`).
-2. **Brother b-PAC Client Component** (gratis, web de soporte de Brother → QL-800
-   → Descargas → *b-PAC Client Component*). Instala la versión de **64 bits**.
+2. **Brother b-PAC Client Component** (gratis):
+   <https://support.brother.com/g/s/es/dev/en/bpac/download/index.html?c=eu_ot&lang=en&navi=offall&comple=on&redirect=on>
+   Descarga **b-PAC Client Component (64-bit ver.)** (no hace falta el SDK completo).
    Es lo que permite usar tu plantilla `.lbx` tal cual.
 3. Copia la carpeta `EtiquetasCofares` (con el `.exe`, `config.ini` y
    `plantilla.lbx`) a, por ejemplo, `C:\Impresora envios cofares\`.
@@ -59,7 +62,7 @@ Si cambias el diseño en P-touch Editor, solo tienes que guardar encima de
 - *"No se encuentra la impresora"*: el nombre de `config.ini` no coincide con el
   de Windows (Configuración → Impresoras).
 - *"Faltan datos en el PDF"*: Cofares ha cambiado el formato del PDF. El PDF queda
-  en `Etiquetas con error`; mándalo para ajustar el programa.
+  marcado con `#`; mándalo para ajustar el programa.
 - Todo lo que pasa queda anotado en `registro.log`, junto al programa.
 
 ## Para desarrolladores

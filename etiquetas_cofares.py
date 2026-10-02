@@ -1,13 +1,13 @@
 """Impresor automático de etiquetas Cofares para Brother QL-800.
 
 Vigila la carpeta de descargas: cada PDF de etiqueta nuevo se lee, se imprime
-con la plantilla de P-touch Editor y se mueve a la subcarpeta de impresos.
+con la plantilla de P-touch Editor y se renombra con '!' delante (o '#' si
+ha fallado) para que no se vuelva a imprimir.
 """
 import configparser
 import fnmatch
 import logging
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -52,8 +52,8 @@ def cargar_config():
     return {
         "carpeta": carpeta,
         "patron": g.get("patron", "*.pdf"),
-        "impresos": os.path.join(carpeta, g.get("subcarpeta_impresos", "Etiquetas impresas")),
-        "errores": os.path.join(carpeta, g.get("subcarpeta_errores", "Etiquetas con error")),
+        "marca_impresa": g.get("marca_impresa", "!").strip() or "!",
+        "marca_error": g.get("marca_error", "#").strip() or "#",
         "pendientes": g.getboolean("imprimir_pendientes_al_arrancar", False),
         "impresora": imp.get("nombre", ""),
         "plantilla": plantilla,
@@ -74,15 +74,16 @@ def un_solo_ejemplar():
     return win32api.GetLastError() != winerror.ERROR_ALREADY_EXISTS
 
 
-def mover(ruta, carpeta):
-    os.makedirs(carpeta, exist_ok=True)
+def marcar(ruta, marca):
+    """Renombra 'etiqueta.pdf' a '!etiqueta.pdf' (sin pisar otro archivo)."""
+    carpeta = os.path.dirname(ruta)
     nombre, ext = os.path.splitext(os.path.basename(ruta))
-    destino = os.path.join(carpeta, nombre + ext)
+    destino = os.path.join(carpeta, f"{marca}{nombre}{ext}")
     n = 1
     while os.path.exists(destino):
-        destino = os.path.join(carpeta, f"{nombre} ({n}){ext}")
+        destino = os.path.join(carpeta, f"{marca}{nombre} ({n}){ext}")
         n += 1
-    shutil.move(ruta, destino)
+    os.rename(ruta, destino)
     return destino
 
 
@@ -176,8 +177,10 @@ class App:
             nombres = os.listdir(self.cfg["carpeta"])
         except OSError:
             return []
+        marcas = (self.cfg["marca_impresa"], self.cfg["marca_error"])
         return [os.path.join(self.cfg["carpeta"], n) for n in nombres
-                if fnmatch.fnmatch(n.lower(), self.cfg["patron"].lower())]
+                if not n.startswith(marcas)
+                and fnmatch.fnmatch(n.lower(), self.cfg["patron"].lower())]
 
     def vigilar(self):
         try:
@@ -227,16 +230,16 @@ class App:
 
         if self.enviar(datos, nombre):
             try:
-                mover(ruta, self.cfg["impresos"])
+                marcar(ruta, self.cfg["marca_impresa"])
             except OSError as e:
                 self.ignorados.add(ruta)
-                self.anotar(f"No se pudo mover {nombre}: {e}", logging.WARNING)
+                self.anotar(f"No se pudo renombrar {nombre}: {e}", logging.WARNING)
         else:
             self.a_errores(ruta)
 
     def a_errores(self, ruta):
         try:
-            mover(ruta, self.cfg["errores"])
+            marcar(ruta, self.cfg["marca_error"])
         except OSError:
             self.ignorados.add(ruta)
 
