@@ -18,8 +18,6 @@ OBJETOS = {
     "obj_frio": "frio",
 }
 
-# Formato si config.ini no trae esa línea (p. ej. un config.ini antiguo).
-FORMATO_POR_DEFECTO = {"frio": "{frio}"}
 # Cuadros que pueden faltar en plantillas antiguas mientras no haya que escribir nada.
 OPCIONALES = {"obj_frio"}
 
@@ -31,7 +29,7 @@ def formatear(datos, formatos):
     """
     textos = {}
     for clave in OBJETOS.values():
-        formato = formatos.get(clave, FORMATO_POR_DEFECTO.get(clave, ""))
+        formato = formatos.get(clave, "")
         textos[clave] = formato.format(**datos) if formato.strip() else None
     return textos
 

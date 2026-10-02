@@ -72,16 +72,21 @@ def test_formato_vacio_conserva_texto_de_plantilla(tmp_path, monkeypatch):
     assert doc.objetos["obj_remite"].Text == "FM1"
 
 
-def test_plantilla_del_repositorio_tiene_todos_los_objetos():
+def _objetos_de(nombre_plantilla):
     import os
     import re
     import zipfile
     from xml.dom import minidom
 
-    ruta = os.path.join(os.path.dirname(__file__), "..", "plantilla.lbx")
+    ruta = os.path.join(os.path.dirname(__file__), "..", nombre_plantilla)
     xml = zipfile.ZipFile(ruta).read("label.xml").decode("utf-8")
     minidom.parseString(xml)
-    assert set(re.findall(r'objectName="(\w+)"', xml)) == set(impresion.OBJETOS)
+    return set(re.findall(r'objectName="(\w+)"', xml))
+
+
+def test_plantillas_del_repositorio():
+    assert _objetos_de("plantilla.lbx") == set(impresion.OBJETOS) - {"obj_frio"}
+    assert _objetos_de("plantilla_frio.lbx") == set(impresion.OBJETOS)
 
 
 def test_plantilla_antigua_sin_cuadro_de_frio(tmp_path, monkeypatch):
@@ -100,5 +105,6 @@ def test_plantilla_antigua_sin_cuadro_de_frio(tmp_path, monkeypatch):
     impresion.imprimir(impresion.formatear(datos, formatos), str(plantilla), "x")  # sin frío: vale
 
     with pytest.raises(impresion.ErrorImpresion, match="obj_frio"):
-        impresion.imprimir(impresion.formatear(dict(datos, frio="FRÍO"), formatos),
+        impresion.imprimir(impresion.formatear(dict(datos, frio="FRÍO"),
+                                               dict(formatos, frio="{frio}")),
                            str(plantilla), "x")

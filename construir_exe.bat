@@ -6,6 +6,7 @@ python -m PyInstaller --noconfirm --clean --windowed --name EtiquetasCofares ^
   --hidden-import win32timezone etiquetas_cofares.py || goto :error
 copy /y config.ini dist\EtiquetasCofares\ >nul
 copy /y plantilla.lbx dist\EtiquetasCofares\ >nul
+copy /y plantilla_frio.lbx dist\EtiquetasCofares\ >nul
 copy /y instalar_inicio_automatico.bat dist\EtiquetasCofares\ >nul
 copy /y LEEME.md dist\EtiquetasCofares\ >nul
 echo.

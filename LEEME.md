@@ -9,7 +9,8 @@ ningún clic más.
 1. El programa vigila la carpeta de **Descargas** (se puede cambiar en `config.ini`).
 2. Cuando aparece un PDF que se llama `etiqueta_*.pdf`, espera a que termine de
    descargarse y lee: código FM, Remite, Destino, Centro, N1 y N3.
-   Si el PDF dice **FRÍO** o **NEVERA**, lo imprime en grande abajo a la izquierda.
+   Si el PDF dice **FRÍO** o **NEVERA**, usa `plantilla_frio.lbx`, que lleva
+   **F R Í O** en grande de lado a lado en la parte de abajo.
 3. Rellena esos datos en `plantilla.lbx` y la imprime en la *Brother QL-800 COFARES*.
 4. Le pone una marca delante del nombre para no imprimirlo dos veces:
    - `!etiqueta_FM0000921557_1.pdf` → ya impresa.

@@ -46,9 +46,9 @@ def cargar_config():
 
     g, imp = cfg["general"], cfg["impresora"]
     carpeta = os.path.expandvars(os.path.expanduser(g.get("carpeta_vigilada")))
-    plantilla = os.path.expandvars(imp.get("plantilla", "plantilla.lbx"))
-    if not os.path.isabs(plantilla):
-        plantilla = os.path.join(BASE, plantilla)
+    def ruta_plantilla(clave, defecto):
+        ruta = os.path.expandvars(imp.get(clave, defecto))
+        return ruta if os.path.isabs(ruta) else os.path.join(BASE, ruta)
     return {
         "carpeta": carpeta,
         "patron": g.get("patron", "*.pdf"),
@@ -56,7 +56,8 @@ def cargar_config():
         "marca_error": g.get("marca_error", "#").strip() or "#",
         "pendientes": g.getboolean("imprimir_pendientes_al_arrancar", False),
         "impresora": imp.get("nombre", ""),
-        "plantilla": plantilla,
+        "plantilla": ruta_plantilla("plantilla", "plantilla.lbx"),
+        "plantilla_frio": ruta_plantilla("plantilla_frio", "plantilla_frio.lbx"),
         "copias": imp.getint("copias", 1),
         "formatos": dict(cfg["formato"]),
     }
@@ -252,7 +253,8 @@ class App:
         self.poner_estado(f"Imprimiendo {datos['codigo']}…", "#1d4ed8")
         self.root.update_idletasks()
         try:
-            imprimir(textos, self.cfg["plantilla"], self.cfg["impresora"], self.cfg["copias"])
+            plantilla = self.cfg["plantilla_frio"] if datos.get("frio") else self.cfg["plantilla"]
+            imprimir(textos, plantilla, self.cfg["impresora"], self.cfg["copias"])
         except ErrorImpresion as e:
             self.avisar_error("No se pudo imprimir", f"{origen}\n\n{e}")
             return False
