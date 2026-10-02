@@ -19,8 +19,12 @@ OBJETOS = {
 
 
 def formatear(datos, formatos):
-    """Aplica los formatos de config.ini, p. ej. 'Remite: {remite}'."""
-    return {clave: formatos[clave].format(**datos) for clave in OBJETOS.values()}
+    """Aplica los formatos de config.ini, p. ej. 'Remite: {remite}'.
+
+    Un formato vacío deja ese cuadro con el texto que tiene la plantilla (None).
+    """
+    return {clave: formatos[clave].format(**datos) if formatos.get(clave, "").strip() else None
+            for clave in OBJETOS.values()}
 
 
 def _crear_documento():
@@ -66,7 +70,8 @@ def imprimir(textos, plantilla, impresora, copias=1):
             obj = _llamar(doc, "GetObject", nombre)
             if obj is None:
                 raise ErrorImpresion(f"La plantilla no tiene el objeto '{nombre}'.")
-            obj.Text = textos[clave]
+            if textos[clave] is not None:
+                obj.Text = textos[clave]
 
         if _llamar(doc, "StartPrint", "", 0) is False:
             raise ErrorImpresion("No se pudo iniciar la impresión.")

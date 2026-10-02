@@ -55,6 +55,13 @@ Si cambias el diseño en P-touch Editor, solo tienes que guardar encima de
 `obj_codigo` (código de barras), `obj_remite`, `obj_destino`, `obj_centro`,
 `obj_n1`, `obj_n3`.
 
+Consejos para que la etiqueta salga igual que en el diseño:
+- Los cuadros de datos están **alineados a la izquierda** y en dos columnas: al
+  meter el dato, el cuadro crece hacia la derecha sin descolocarse.
+- Si un formato de `[formato]` se deja vacío (como `titulo =`), ese cuadro se
+  imprime con el texto que tenga la plantilla.
+- `plantilla_original.lbx` es la versión anterior, por si quieres volver a ella.
+
 ## Si algo falla
 
 - *"No se encuentra Brother b-PAC"*: falta instalar b-PAC o se instaló el de
