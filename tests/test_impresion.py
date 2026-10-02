@@ -82,3 +82,23 @@ def test_plantilla_del_repositorio_tiene_todos_los_objetos():
     xml = zipfile.ZipFile(ruta).read("label.xml").decode("utf-8")
     minidom.parseString(xml)
     assert set(re.findall(r'objectName="(\w+)"', xml)) == set(impresion.OBJETOS)
+
+
+def test_plantilla_antigua_sin_cuadro_de_frio(tmp_path, monkeypatch):
+    import pytest
+
+    plantilla = tmp_path / "plantilla.lbx"
+    plantilla.write_bytes(b"x")
+    doc = DocDinamico()
+    del doc.objetos["obj_frio"]
+    monkeypatch.setattr(impresion, "_crear_documento", lambda: doc)
+    datos = {"codigo": "FM1", "remite": "1", "destino": "2", "centro": "3",
+             "n1": "4", "n3": "5", "frio": ""}
+    formatos = {"codigo": "{codigo}", "remite": "{remite}", "destino": "{destino}",
+                "centro": "{centro}", "n1": "{n1}", "n3": "{n3}", "titulo": ""}
+
+    impresion.imprimir(impresion.formatear(datos, formatos), str(plantilla), "x")  # sin frío: vale
+
+    with pytest.raises(impresion.ErrorImpresion, match="obj_frio"):
+        impresion.imprimir(impresion.formatear(dict(datos, frio="FRÍO"), formatos),
+                           str(plantilla), "x")

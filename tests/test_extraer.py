@@ -15,6 +15,7 @@ def test_pdf_real():
         "centro": "4501",
         "n1": "35105/1",
         "n3": "35303/21",
+        "frio": "",
     }
 
 
@@ -33,3 +34,20 @@ def test_codigo_desde_nombre_de_archivo():
 def test_falta_un_dato():
     with pytest.raises(ErrorExtraccion, match="N3"):
         extraer_de_texto("FM0000000001 Remite:1 Destino:2 Centro=3 N1:4")
+
+
+LINEA = "FM0000000001\nRemite:1 Destino:2 Centro=3 N1:4 /1 N3:5/21"
+
+
+@pytest.mark.parametrize("texto, esperado", [
+    (LINEA + " FRIO", "FRÍO"),
+    (LINEA + "   Frío", "FRÍO"),
+    (LINEA + "\nNEVERA", "NEVERA"),
+    ("FRÍO\n" + LINEA, "FRÍO"),
+    (LINEA, ""),
+    (LINEA + "\nFrioleras", ""),
+])
+def test_aviso_de_frio(texto, esperado):
+    d = extraer_de_texto(texto)
+    assert d["frio"] == esperado
+    assert d["n3"] == "5/21" and d["n1"] == "4/1"

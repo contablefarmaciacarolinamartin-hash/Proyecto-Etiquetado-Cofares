@@ -18,7 +18,9 @@ CAMPOS = {
     "n1": "N1",
     "n3": "N3",
 }
-_SIGUIENTE = r"(?=\s+(?:Remite|Destino|Centro|N\d)\s*[:=]|\s*$)"
+# Envíos de nevera: si el PDF contiene alguna de estas palabras se avisa en grande.
+_FRIO = re.compile(r"\b(FR[IÍ]O|NEVERA)\b", re.IGNORECASE)
+_SIGUIENTE = r"(?=\s+(?:(?:Remite|Destino|Centro|N\d)\s*[:=]|FR[IÍ]O\b|NEVERA\b)|\s*$)"
 
 
 class ErrorExtraccion(Exception):
@@ -48,13 +50,17 @@ def extraer_de_texto(texto, nombre_archivo=""):
 
     faltan = []
     for clave, etiqueta in CAMPOS.items():
-        m = re.search(rf"\b{etiqueta}\s*[:=]\s*(.+?){_SIGUIENTE}", texto, re.MULTILINE)
+        m = re.search(rf"\b{etiqueta}\s*[:=]\s*(.+?){_SIGUIENTE}", texto,
+                      re.MULTILINE | re.IGNORECASE)
         if m and _limpiar(m.group(1)):
             datos[clave] = _limpiar(m.group(1))
         else:
             faltan.append(etiqueta)
     if faltan:
         raise ErrorExtraccion("Faltan datos en el PDF: " + ", ".join(faltan))
+
+    frio = _FRIO.search(texto)
+    datos["frio"] = ("NEVERA" if frio.group(1).upper() == "NEVERA" else "FRÍO") if frio else ""
     return datos
 
 

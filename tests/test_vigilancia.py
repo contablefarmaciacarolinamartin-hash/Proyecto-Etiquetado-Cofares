@@ -25,7 +25,7 @@ def entorno(tmp_path, monkeypatch):
         "carpeta": str(tmp_path), "patron": "etiqueta_*.pdf",
         "marca_impresa": "!", "marca_error": "#",
         "pendientes": False, "impresora": "x", "plantilla": "x", "copias": 1,
-        "formatos": {"titulo": "", "codigo": "{codigo}",
+        "formatos": {"titulo": "Etiq. envío: {codigo}", "codigo": "{codigo}", "frio": "{frio}",
                      "remite": "Remite: {remite}", "destino": "Destino: {destino}",
                      "centro": "Centro={centro}", "n1": "N1:{n1}", "n3": "N3:{n3}"},
     }
@@ -47,7 +47,8 @@ def test_imprime_y_mueve(entorno):
     vueltas(app)
     assert errores == []
     assert len(impresas) == 1
-    assert impresas[0]["n1"] == "N1:35105/1" and impresas[0]["titulo"] is None
+    assert impresas[0]["n1"] == "N1:35105/1" and impresas[0]["titulo"] == "Etiq. envío: FM0000921557"
+    assert impresas[0]["frio"] == ""
     assert (carpeta / "!etiqueta_FM0000921557_1.pdf").exists()
     assert not (carpeta / "etiqueta_FM0000921557_1.pdf").exists()
     # lo que ya estaba al arrancar y lo que no encaja con el patrón no se toca

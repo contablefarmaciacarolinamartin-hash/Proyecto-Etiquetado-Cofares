@@ -15,7 +15,13 @@ OBJETOS = {
     "obj_centro": "centro",
     "obj_n1": "n1",
     "obj_n3": "n3",
+    "obj_frio": "frio",
 }
+
+# Formato si config.ini no trae esa línea (p. ej. un config.ini antiguo).
+FORMATO_POR_DEFECTO = {"frio": "{frio}"}
+# Cuadros que pueden faltar en plantillas antiguas mientras no haya que escribir nada.
+OPCIONALES = {"obj_frio"}
 
 
 def formatear(datos, formatos):
@@ -23,8 +29,11 @@ def formatear(datos, formatos):
 
     Un formato vacío deja ese cuadro con el texto que tiene la plantilla (None).
     """
-    return {clave: formatos[clave].format(**datos) if formatos.get(clave, "").strip() else None
-            for clave in OBJETOS.values()}
+    textos = {}
+    for clave in OBJETOS.values():
+        formato = formatos.get(clave, FORMATO_POR_DEFECTO.get(clave, ""))
+        textos[clave] = formato.format(**datos) if formato.strip() else None
+    return textos
 
 
 def _crear_documento():
@@ -69,6 +78,8 @@ def imprimir(textos, plantilla, impresora, copias=1):
         for nombre, clave in OBJETOS.items():
             obj = _llamar(doc, "GetObject", nombre)
             if obj is None:
+                if nombre in OPCIONALES and not textos[clave]:
+                    continue
                 raise ErrorImpresion(f"La plantilla no tiene el objeto '{nombre}'.")
             if textos[clave] is not None:
                 obj.Text = textos[clave]

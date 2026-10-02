@@ -264,7 +264,7 @@ class App:
         self.btn_reimprimir.config(state="normal")
         self.poner_estado(f"✔ Impresa {datos['codigo']}", "#15803d")
         self.anotar(f"Impresa {datos['codigo']}  {textos['remite']}  {textos['destino']}  "
-                    f"{textos['n1']}  {textos['n3']}")
+                    f"{textos['n1']}  {textos['n3']}  {datos['frio']}")
         return True
 
     def imprimir_manual(self):
