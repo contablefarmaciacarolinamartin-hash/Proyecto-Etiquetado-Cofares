@@ -18,6 +18,8 @@ CAMPOS = {
     "n1": "N1",
     "n3": "N3",
 }
+# Códigos internos de Cofares que no siempre vienen: si faltan se dejan en blanco.
+OPCIONALES = {"n1", "n3"}
 # Envíos de nevera: si el PDF contiene alguna de estas palabras se avisa en grande.
 _FRIO = re.compile(r"\b(FR[IÍ]O|NEVERA)\b", re.IGNORECASE)
 _SIGUIENTE = r"(?=\s+(?:(?:Remite|Destino|Centro|N\d)\s*[:=]|FR[IÍ]O\b|NEVERA\b)|\s*$)"
@@ -50,10 +52,12 @@ def extraer_de_texto(texto, nombre_archivo=""):
 
     faltan = []
     for clave, etiqueta in CAMPOS.items():
-        m = re.search(rf"\b{etiqueta}\s*[:=]\s*(.+?){_SIGUIENTE}", texto,
+        # El valor está en la misma línea; puede venir vacío ("N3:" sin nada).
+        m = re.search(rf"\b{etiqueta}[ \t]*[:=]([^\n]*?){_SIGUIENTE}", texto,
                       re.MULTILINE | re.IGNORECASE)
-        if m and _limpiar(m.group(1)):
-            datos[clave] = _limpiar(m.group(1))
+        valor = _limpiar(m.group(1)) if m else ""
+        if valor or clave in OPCIONALES:
+            datos[clave] = valor
         else:
             faltan.append(etiqueta)
     if faltan:

@@ -1,5 +1,6 @@
 """Impresión en la Brother QL-800 usando la plantilla de P-touch Editor (b-PAC)."""
 import os
+from string import Formatter
 
 
 class ErrorImpresion(Exception):
@@ -30,7 +31,12 @@ def formatear(datos, formatos):
     textos = {}
     for clave in OBJETOS.values():
         formato = formatos.get(clave, "")
-        textos[clave] = formato.format(**datos) if formato.strip() else None
+        if not formato.strip():
+            textos[clave] = None
+        elif any(campo and not datos.get(campo) for _, campo, _, _ in Formatter().parse(formato)):
+            textos[clave] = ""  # p. ej. "N3:{n3}" sin N3 en el PDF: el cuadro queda en blanco
+        else:
+            textos[clave] = formato.format(**datos)
     return textos
 
 

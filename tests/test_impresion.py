@@ -108,3 +108,13 @@ def test_plantilla_antigua_sin_cuadro_de_frio(tmp_path, monkeypatch):
         impresion.imprimir(impresion.formatear(dict(datos, frio="FRÍO"),
                                                dict(formatos, frio="{frio}")),
                            str(plantilla), "x")
+
+
+def test_campo_vacio_deja_el_cuadro_en_blanco():
+    datos = {"codigo": "FM1", "remite": "1", "destino": "2", "centro": "3",
+             "n1": "4/1", "n3": "", "frio": ""}
+    formatos = {"titulo": "Etiq. envío: {codigo}", "codigo": "{codigo}", "remite": "Remite: {remite}",
+                "destino": "Destino: {destino}", "centro": "Centro={centro}",
+                "n1": "N1:{n1}", "n3": "N3:{n3}", "frio": ""}
+    t = impresion.formatear(datos, formatos)
+    assert t["n1"] == "N1:4/1" and t["n3"] == "" and t["frio"] is None
