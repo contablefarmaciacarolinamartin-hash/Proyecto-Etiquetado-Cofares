@@ -148,6 +148,24 @@ class EnvioCofares:
             "xpath=//input[@type='checkbox']"
             f"[preceding::text()[normalize-space()][1][contains(normalize-space(), {t})]]").first
 
+    def _marcar(self, zona, casilla, valor, nombre):
+        """Marca o desmarca una casilla. En Cofares la casilla real está oculta y lo que
+        se ve es su etiqueta dibujada, así que se pulsa la etiqueta (como con el ratón)."""
+        if casilla.is_checked() == valor:
+            return
+        if casilla.is_visible():
+            casilla.click()
+        else:
+            ident = casilla.get_attribute("id")
+            etiqueta = zona.locator(f"label[for='{ident}']") if ident else None
+            if etiqueta is not None and etiqueta.count() and etiqueta.first.is_visible():
+                etiqueta.first.click()
+            else:  # último recurso: el clic directamente sobre la casilla oculta
+                casilla.evaluate("e => e.click()")
+        self._pausa(0.3)
+        if casilla.is_checked() != valor:
+            raise ErrorCofares(f"No se ha podido {'marcar' if valor else 'desmarcar'} «{nombre}».")
+
     # --- pasos --------------------------------------------------------------
     def _iniciar_sesion_si_hace_falta(self, page):
         usuario = page.get_by_placeholder(re.compile("Ej: ?12345", re.I))
@@ -238,12 +256,8 @@ class EnvioCofares:
             self._pausa(0.3)
         self.avisar("Destino validado.")
 
-        formula.check()
-        casilla_frio = self._casilla(form, "Requiere fr")
-        if frio:
-            casilla_frio.check()
-        elif casilla_frio.is_checked():
-            casilla_frio.uncheck()
+        self._marcar(form, formula, True, "Contiene fórmula magistral")
+        self._marcar(form, self._casilla(form, "Requiere fr"), frio, "Requiere frío")
 
         if prueba:
             self.avisar("MODO PRUEBA: formulario rellenado, no se ha solicitado la recogida.")

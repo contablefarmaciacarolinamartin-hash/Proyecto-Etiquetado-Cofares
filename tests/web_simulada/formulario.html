@@ -5,8 +5,11 @@
   <a href="javascript:void(0)" id="validar">Validar destino</a>
   <div>CARACTERÍSTICAS DEL BULTO</div>
   <div class="fila">
-    <span><input type="checkbox" id="c1" disabled> <span>Requiere frío</span></span>
-    <span><input type="checkbox" id="c2" disabled> <span>Contiene fórmula magistral</span></span>
+    <!-- Como en Cofares: la casilla real está oculta y se pulsa su etiqueta (dibujada con CSS) -->
+    <span><input type="checkbox" class="cooperadorYcodigoValido" id="c1" name="_enviobultos_checkRequiereFrio" disabled style="display:none">
+      <label for="c1">Requiere frío</label></span>
+    <span><input type="checkbox" class="cooperadorYcodigoValido" id="c2" name="_enviobultos_checkContieneFormulaMagistral" disabled style="display:none">
+      <label for="c2">Contiene fórmula magistral</label></span>
   </div>
   <div id="contenido">CONTENIDO <input type="checkbox" disabled> <span>Producto sin Código Nacional</span></div>
   <button id="cancelar">Cancelar</button><button id="solicitar" disabled>Solicitar Recogida</button>
