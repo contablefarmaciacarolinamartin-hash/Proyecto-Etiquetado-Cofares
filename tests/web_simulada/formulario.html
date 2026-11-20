@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>Envío entre farmacias (simulado)</title>
+<div id="form">
+  <div>DESTINO</div>
+  <input id="coop" placeholder="Número de cooperador"><input id="cp" placeholder="Código postal">
+  <a href="javascript:void(0)" id="validar">Validar destino</a>
+  <div>CARACTERÍSTICAS DEL BULTO</div>
+  <div class="fila">
+    <span><input type="checkbox" id="c1" disabled> <span>Requiere frío</span></span>
+    <span><input type="checkbox" id="c2" disabled> <span>Contiene fórmula magistral</span></span>
+  </div>
+  <div id="contenido">CONTENIDO <input type="checkbox" disabled> <span>Producto sin Código Nacional</span></div>
+  <button id="cancelar">Cancelar</button><button id="solicitar" disabled>Solicitar Recogida</button>
+  <div id="confirmacion" hidden>¿Quiere confirmar la recogida?
+    <button id="aceptar">Aceptar</button><button id="no">Cancelar</button></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+function descargarPDF(url) { window.location = url; }
+$('validar').onclick = () => setTimeout(() => {
+  if ($('coop').value === '26542' && $('cp').value === '35500') $('c1').disabled = $('c2').disabled = false;
+}, 400);
+$('c2').onchange = () => { $('contenido').hidden = $('c2').checked; $('solicitar').disabled = !$('c2').checked; };
+$('solicitar').onclick = () => $('confirmacion').hidden = false;
+$('no').onclick = () => $('confirmacion').hidden = true;
+$('aceptar').onclick = async () => {
+  const r = await fetch('/recogida', {method:'POST', body: JSON.stringify({coop:$('coop').value, cp:$('cp').value, frio:$('c1').checked, formula:$('c2').checked})});
+  const fm = await r.text();
+  document.body.innerHTML = window.SIN_ENLACE ? '<p>Solicitud registrada</p>' :
+    `<p>Solicitud registrada</p><a href="javascript:void(0)" onclick="descargarPDF('/pdf?envio=${fm}')"><img class="ancho-pdf" alt="pdf"></a>`;
+};
+</script>

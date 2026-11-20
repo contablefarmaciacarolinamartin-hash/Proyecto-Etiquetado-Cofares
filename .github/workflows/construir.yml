@@ -13,7 +13,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt pytest
-      - run: python -m pytest -q
+      - run: python -m playwright install --with-deps chromium
+      - run: sudo apt-get install -y xvfb
+      - run: xvfb-run -a python -m pytest -q
 
   windows:
     needs: pruebas
@@ -26,8 +28,18 @@ jobs:
         with:
           python-version: "3.12"
           architecture: x64
-      - run: python -m pip install -r requirements.txt pyinstaller
+      - run: python -m pip install -r requirements.txt pyinstaller pytest
+      # La automatización de Cofares con Microsoft Edge, como en la farmacia
+      - name: Pruebas con Edge
+        env:
+          PRUEBAS_CANAL: msedge
+        run: python -m pytest -q tests/test_cofares_web.py tests/test_ventana_envio.py
       - run: python -m PyInstaller --noconfirm --clean --windowed --name EtiquetasCofares --hidden-import win32timezone etiquetas_cofares.py
+      - name: Comprobar que el .exe incluye el control del navegador
+        shell: pwsh
+        run: |
+          $p = Start-Process dist/EtiquetasCofares/EtiquetasCofares.exe -ArgumentList "--comprobar" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "EtiquetasCofares.exe --comprobar ha fallado ($($p.ExitCode))" }
       - shell: pwsh
         run: Copy-Item config.ini, plantilla.lbx, plantilla_frio.lbx, instalar_inicio_automatico.bat, LEEME.md dist/EtiquetasCofares/
       - uses: actions/upload-artifact@v4
@@ -48,6 +60,6 @@ jobs:
           target_commitish: ${{ github.sha }}
           body: |
             Descarga EtiquetasCofares-windows.zip, clic derecho → Propiedades → Desbloquear,
-            descomprímelo en C:\Impresora envios cofares\ y ejecuta instalar_inicio_automatico.bat.
+            descomprímelo en C:\EtiquetasCofares-windows (reemplazando) y ejecuta instalar_inicio_automatico.bat.
           files: EtiquetasCofares-windows.zip
           make_latest: "true"

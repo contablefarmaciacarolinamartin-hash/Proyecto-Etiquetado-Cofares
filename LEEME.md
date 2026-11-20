@@ -28,6 +28,33 @@ La ventana tiene además:
 - **Pausar**: deja de imprimir automáticamente hasta pulsar *Reanudar*.
 - **Abrir carpeta**: abre la carpeta vigilada.
 
+## Nuevo envío Cofares (sin entrar en la web)
+
+El botón **Nuevo envío Cofares…** hace por ti el formulario "Envío entre farmacias":
+
+1. Eliges la farmacia de destino (sale de Magisfor) y marcas **Requiere FRÍO** si hace falta.
+2. **Generar e imprimir** → confirma → el programa abre Edge, entra en Cofares,
+   rellena cooperador y CP, valida, marca *Contiene fórmula magistral* (y frío),
+   pide la recogida y descarga el PDF.
+3. El PDF cae en Descargas y se imprime solo, con la plantilla de frío si toca.
+
+Requisitos en Magisfor (ficha de cada farmacia **activa**):
+**Forma de envío = COFARES**, **Ruta = nº de cooperador** y el **C.P.** relleno.
+Las activas a las que les falte algo se avisan en la ventana y no salen en la lista.
+
+**Acceso a Cofares:** la primera vez el programa ofrece guardar tu nº de cooperador
+y contraseña en el *Administrador de credenciales de Windows* (cifrado; nunca en
+archivos del programa). Se pueden cambiar con el botón **Acceso Cofares…**.
+
+**Modo prueba:** en `config.ini`, sección `[cofares]`, `modo_prueba = si` (así viene)
+rellena todo y valida el destino pero **no** pide la recogida. Cuando lo hayas visto
+funcionar, cámbialo a `modo_prueba = no`. (Ojo: al actualizar el programa, si
+sustituyes `config.ini`, vuelve a ponerlo en `no`.)
+
+Si la web de Cofares cambia y algo no encaja, el programa se para (nunca pide dos
+recogidas) y guarda una captura y el código de la página en la carpeta
+`diagnostico`, junto al programa: mándalos para ajustarlo.
+
 ## Instalación (una sola vez)
 
 1. **Driver de la impresora**: la QL-800 ya debe aparecer en Windows con el nombre

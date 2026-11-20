@@ -45,6 +45,8 @@ def cargar_config():
         cfg.read(ruta, encoding="cp1252")
 
     g, imp = cfg["general"], cfg["impresora"]
+    mf = cfg["magisfor"] if cfg.has_section("magisfor") else {}
+    cf = cfg["cofares"] if cfg.has_section("cofares") else {}
     carpeta = os.path.expandvars(os.path.expanduser(g.get("carpeta_vigilada")))
     def ruta_plantilla(clave, defecto):
         ruta = os.path.expandvars(imp.get(clave, defecto))
@@ -60,6 +62,13 @@ def cargar_config():
         "plantilla_frio": ruta_plantilla("plantilla_frio", "plantilla_frio.lbx"),
         "copias": imp.getint("copias", 1),
         "formatos": dict(cfg["formato"]),
+        "magisfor": os.path.expandvars(mf.get("carpeta", r"C:\MagisFor")),
+        "cofares_prueba": (cf.get("modo_prueba", "si").strip().lower() in ("si", "sí", "yes", "1", "true")),
+        "navegador": cf.get("navegador", "msedge").strip(),
+        "cofares_url": cf.get("url", "").strip()
+                       or "https://areaprivada.cofares.es/group/canal-online/envio-de-bultos",
+        "perfil_navegador": os.path.join(BASE, "navegador"),
+        "diagnostico": os.path.join(BASE, "diagnostico"),
     }
 
 
@@ -99,7 +108,7 @@ class App:
         self.ocupado = False  # evita reentrar mientras hay un aviso abierto
 
         root.title("Etiquetas Cofares")
-        root.geometry("460x330")
+        root.geometry("480x380")
         root.minsize(380, 260)
         root.protocol("WM_DELETE_WINDOW", self.cerrar)
 
@@ -108,6 +117,8 @@ class App:
                  font=("Segoe UI", 8), fg="#555").pack()
         self.estado = tk.Label(root, text="", font=("Segoe UI", 11, "bold"))
         self.estado.pack(pady=6)
+        tk.Button(root, text="Nuevo envío Cofares…", font=("Segoe UI", 10, "bold"),
+                  bg="#db2777", fg="white", padx=10, command=self.nuevo_envio).pack(pady=(0, 6))
 
         self.lista = tk.Listbox(root, height=8, font=("Consolas", 9))
         self.lista.pack(fill="both", expand=True, padx=10)
@@ -289,6 +300,10 @@ class App:
             return
         self.enviar(datos, os.path.basename(ruta))
 
+    def nuevo_envio(self):
+        from ventana_envio import VentanaEnvio
+        VentanaEnvio(self)
+
     def reimprimir(self):
         if self.ultimo and not self.ocupado:
             self.ocupado = True
@@ -298,7 +313,17 @@ class App:
                 self.ocupado = False
 
 
+def comprobar_navegador():
+    """EtiquetasCofares.exe --comprobar: verifica que el control del navegador está incluido."""
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        p.chromium  # arranca el controlador de Playwright
+    return 0
+
+
 def main():
+    if "--comprobar" in sys.argv:
+        sys.exit(comprobar_navegador())
     if not un_solo_ejemplar():
         tk.Tk().withdraw()
         messagebox.showinfo("Etiquetas Cofares", "El programa ya está abierto.")

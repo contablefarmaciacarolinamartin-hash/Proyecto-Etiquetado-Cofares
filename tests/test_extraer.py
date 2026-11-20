@@ -69,3 +69,10 @@ def test_aviso_de_frio(texto, esperado):
     d = extraer_de_texto(texto)
     assert d["frio"] == esperado
     assert d["n3"] == "5/21" and d["n1"] == "4/1"
+
+
+def test_frio_por_nombre_de_archivo():
+    texto = "FM0000961063 Remite:1 Destino:2 Centro=3 N1:4"
+    assert extraer_de_texto(texto, r"C:\D\etiqueta_FM0000961063_FRIO.pdf")["frio"] == "FRÍO"
+    assert extraer_de_texto(texto, r"C:\D\etiqueta_FM0000961063_FRIO (1).pdf")["frio"] == "FRÍO"
+    assert extraer_de_texto(texto, r"C:\D\etiqueta_FM0000961063.pdf")["frio"] == ""

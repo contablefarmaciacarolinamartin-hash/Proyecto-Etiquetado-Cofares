@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>Login - Cofares (simulado)</title>
+<h2>Accede a tu Área Privada</h2>
+<label>Nº Cooperador</label><input id="u" placeholder="Ej: 12345">
+<label>Contraseña</label><input id="p" type="password" placeholder="Introduce tu contraseña">
+<button id="entrar">Iniciar sesión</button>
+<script>
+document.getElementById('entrar').onclick = async () => {
+  const r = await fetch('/entrar', {method:'POST', body: JSON.stringify({u:u.value, p:p.value})});
+  if (r.ok) location.href = '/group/canal-online/envio-de-bultos'; else alert('mal');
+};
+</script>

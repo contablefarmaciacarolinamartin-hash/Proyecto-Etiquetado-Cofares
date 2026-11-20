@@ -64,7 +64,12 @@ def extraer_de_texto(texto, nombre_archivo=""):
         raise ErrorExtraccion("Faltan datos en el PDF: " + ", ".join(faltan))
 
     frio = _FRIO.search(texto)
-    datos["frio"] = ("NEVERA" if frio.group(1).upper() == "NEVERA" else "FRÍO") if frio else ""
+    if frio:
+        datos["frio"] = "NEVERA" if frio.group(1).upper() == "NEVERA" else "FRÍO"
+    elif re.search(r"_FRIO\b", os.path.basename(nombre_archivo), re.IGNORECASE):
+        datos["frio"] = "FRÍO"  # envío hecho desde el programa con "Requiere frío"
+    else:
+        datos["frio"] = ""
     return datos
 
 
