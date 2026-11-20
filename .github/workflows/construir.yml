@@ -18,6 +18,8 @@ jobs:
   windows:
     needs: pruebas
     runs-on: windows-latest
+    permissions:
+      contents: write  # para publicar la versión en "Releases"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,3 +34,20 @@ jobs:
         with:
           name: EtiquetasCofares-windows
           path: dist/EtiquetasCofares/
+      - name: Empaquetar zip
+        shell: pwsh
+        run: Compress-Archive -Path dist/EtiquetasCofares/* -DestinationPath EtiquetasCofares-windows.zip
+      # Descarga permanente: siempre la última en
+      # https://github.com/<repo>/releases/latest/download/EtiquetasCofares-windows.zip
+      - name: Publicar versión
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: Etiquetas Cofares v1.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          body: |
+            Descarga EtiquetasCofares-windows.zip, clic derecho → Propiedades → Desbloquear,
+            descomprímelo en C:\Impresora envios cofares\ y ejecuta instalar_inicio_automatico.bat.
+          files: EtiquetasCofares-windows.zip
+          make_latest: "true"

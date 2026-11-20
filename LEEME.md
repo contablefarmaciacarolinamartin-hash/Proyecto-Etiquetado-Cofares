@@ -47,8 +47,9 @@ La ventana tiene además:
    deja configurado para que se abra solo cada vez que se encienda el ordenador.
 
 ### ¿De dónde saco el .exe?
-- En GitHub: pestaña **Actions** → *Construir ejecutable Windows* → última
-  ejecución → descarga **EtiquetasCofares-windows**.
+- Descarga permanente de la última versión:
+  <https://github.com/contablefarmaciacarolinamartin-hash/Proyecto-Etiquetado-Cofares/releases/latest/download/EtiquetasCofares-windows.zip>
+  (las versiones anteriores están en la pestaña **Releases** del repositorio).
 - O en un Windows con Python 3.12 (64 bits): doble clic en `construir_exe.bat`;
   queda en `dist\EtiquetasCofares\`.
 
