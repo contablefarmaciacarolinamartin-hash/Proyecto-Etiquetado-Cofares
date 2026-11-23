@@ -131,6 +131,7 @@ class VentanaEnvio(tk.Toplevel):
                              canal=self.cfg["navegador"] or None, url=self.cfg["cofares_url"],
                              credenciales=credenciales.leer,
                              carpeta_diagnostico=self.cfg["diagnostico"],
+                             visible=self.cfg.get("mostrar_navegador", False),
                              avisar=lambda m: self.mensajes.put(("aviso", m)))
         try:
             pdf = envio.enviar(f.cooperador, f.cp, frio, prueba=prueba)

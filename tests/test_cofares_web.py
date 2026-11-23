@@ -98,6 +98,7 @@ def web():
                 return self.end_headers()
             datos["fm"] = f"FM{961063 + len(estado['recogidas']):010d}"
             datos["hora"] = "23:59:59"
+            datos["navegador"] = self.headers.get("User-Agent", "")
             estado["recogidas"].append(datos)
             self._enviar(datos["fm"].encode())
 
@@ -122,6 +123,9 @@ def nuevas(estado):
 def test_envio_con_frio(tmp_path, web):
     url, estado = web
     pdf = envio(tmp_path, url).enviar("26542", "35500", frio=True, prueba=False, confirmar=lambda: True)
+    # oculto, pero Cofares ve un navegador normal (no "Headless")
+    assert "Headless" not in estado["recogidas"][-1]["navegador"]
+    assert "Mozilla/5.0" in estado["recogidas"][-1]["navegador"]
     assert nuevas(estado) == [{"coop": "26542", "cp": "35500", "frio": True, "formula": True}]
     # el nombre lleva _FRIO para que se imprima con la plantilla de frío
     assert os.path.basename(pdf) == "etiqueta_FM0000961064_FRIO.pdf"

@@ -65,6 +65,8 @@ def cargar_config():
         "magisfor": os.path.expandvars(mf.get("carpeta", r"C:\MagisFor")),
         "cofares_prueba": (cf.get("modo_prueba", "si").strip().lower() in ("si", "sí", "yes", "1", "true")),
         "navegador": cf.get("navegador", "msedge").strip(),
+        "mostrar_navegador": (cf.get("mostrar_navegador", "no").strip().lower()
+                              in ("si", "sí", "yes", "1", "true")),
         "cofares_url": cf.get("url", "").strip()
                        or "https://areaprivada.cofares.es/group/canal-online/envio-de-bultos",
         "perfil_navegador": os.path.join(BASE, "navegador"),

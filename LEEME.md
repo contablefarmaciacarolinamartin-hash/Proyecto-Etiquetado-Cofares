@@ -46,6 +46,9 @@ Las activas a las que les falte algo se avisan en la ventana y no salen en la li
 y contraseña en el *Administrador de credenciales de Windows* (cifrado; nunca en
 archivos del programa). Se pueden cambiar con el botón **Acceso Cofares…**.
 
+**Oculto o visible:** por defecto Edge trabaja oculto (`mostrar_navegador = no` en
+`[cofares]`). Para ver cómo rellena la web, por ejemplo si algo falla, pon `si`.
+
 **Modo prueba:** en `config.ini`, sección `[cofares]`, `modo_prueba = si` (así viene)
 rellena todo y valida el destino pero **no** pide la recogida. Cuando lo hayas visto
 funcionar, cámbialo a `modo_prueba = no`. (Ojo: al actualizar el programa, si

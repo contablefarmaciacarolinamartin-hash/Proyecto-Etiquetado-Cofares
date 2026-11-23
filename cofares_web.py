@@ -172,6 +172,10 @@ class EnvioCofares:
         if not usuario.count():
             return
         datos = self.credenciales() if self.credenciales else None
+        if not datos and not self.visible:
+            raise ErrorCofares("Cofares pide iniciar sesión y no hay acceso guardado.\n"
+                               "Pulsa «Acceso Cofares…» en la ventana de envío y guarda tu "
+                               "nº de cooperador y contraseña.")
         if not datos:
             self.avisar("Cofares pide iniciar sesión: entra en la ventana del navegador.")
             usuario.wait_for(state="detached", timeout=5 * 60_000)
@@ -199,6 +203,29 @@ class EnvioCofares:
         except Exception:
             return page
 
+    def _abrir_navegador(self, p):
+        opciones = dict(headless=not self.visible, accept_downloads=True)
+        if self.visible:
+            opciones.update(no_viewport=True, args=["--start-maximized"])
+        else:
+            opciones.update(viewport={"width": 1600, "height": 1000})
+        if self.ejecutable:
+            opciones["executable_path"] = self.ejecutable
+        elif self.canal:
+            opciones["channel"] = self.canal
+        contexto = p.chromium.launch_persistent_context(self.perfil, **opciones)
+        if not self.visible:
+            # Oculto, el navegador se anuncia como "HeadlessEdg"/"HeadlessChrome" y algunas
+            # webs lo tratan distinto: se vuelve a abrir presentándose como el Edge normal.
+            pagina = contexto.pages[0] if contexto.pages else contexto.new_page()
+            agente = pagina.evaluate("navigator.userAgent")
+            if "Headless" in agente:
+                contexto.close()
+                opciones["user_agent"] = agente.replace("HeadlessEdg", "Edg").replace(
+                    "HeadlessChrome", "Chrome")
+                contexto = p.chromium.launch_persistent_context(self.perfil, **opciones)
+        return contexto
+
     def enviar(self, cooperador, cp, frio, prueba=True, confirmar=None):
         """Hace el envío y devuelve la ruta del PDF (None en modo prueba o si se cancela).
 
@@ -209,13 +236,7 @@ class EnvioCofares:
         self.sufijo = "_FRIO" if frio else ""
         self.descargados, self._descargando = [], False
         with sync_playwright() as p:
-            opciones = dict(headless=not self.visible, accept_downloads=True,
-                            no_viewport=True, args=["--start-maximized"])
-            if self.ejecutable:
-                opciones["executable_path"] = self.ejecutable
-            elif self.canal:
-                opciones["channel"] = self.canal
-            contexto = p.chromium.launch_persistent_context(self.perfil, **opciones)
+            contexto = self._abrir_navegador(p)
             contexto.on("download", self._al_descargar)
             page = contexto.pages[0] if contexto.pages else contexto.new_page()
             self._page = page

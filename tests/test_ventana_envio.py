@@ -51,6 +51,7 @@ def app(tmp_path, monkeypatch, web):  # noqa: F811
                      "destino": "Destino: {destino}", "centro": "Centro={centro}",
                      "n1": "N1:{n1}", "n3": "N3:{n3}", "frio": ""},
         "magisfor": str(magis), "cofares_prueba": False, "navegador": "", "cofares_url": url,
+        "mostrar_navegador": False,
         "perfil_navegador": str(tmp_path / "perfil"), "diagnostico": str(tmp_path / "diag"),
     }
     a = app_mod.App(root, cfg)
@@ -70,8 +71,8 @@ def test_envio_con_frio_de_principio_a_fin(app):
         a.revisar_carpeta()
         time.sleep(0.1)
     assert errores == []
-    assert estado["recogidas"][-1] == {"coop": "26542", "cp": "35500", "frio": True, "formula": True,
-                                       "fm": "FM0000961064", "hora": "23:59:59"}
+    r = estado["recogidas"][-1]
+    assert (r["coop"], r["cp"], r["frio"], r["formula"], r["fm"]) == ("26542", "35500", True, True, "FM0000961064")
     assert len(impresas) == 1
     assert impresas[0]["plantilla"] == "frio.lbx"
     assert impresas[0]["titulo"] == "Etiq. envío: FM0000961063"  # el PDF de pruebas es ese
