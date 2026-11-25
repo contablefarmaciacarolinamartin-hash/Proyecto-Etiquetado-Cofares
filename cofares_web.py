@@ -226,22 +226,17 @@ class EnvioCofares:
                 contexto = p.chromium.launch_persistent_context(self.perfil, **opciones)
         return contexto
 
-    def enviar(self, cooperador, cp, frio, prueba=True, confirmar=None):
-        """Hace el envío y devuelve la ruta del PDF (None en modo prueba o si se cancela).
-
-        confirmar(): última pregunta antes de pedir la recogida.
-        """
+    def _con_navegador(self, trabajo):
+        """Abre el navegador, ejecuta trabajo(contexto, page) y lo cierra siempre."""
         from playwright.sync_api import sync_playwright
 
-        self.sufijo = "_FRIO" if frio else ""
-        self.descargados, self._descargando = [], False
         with sync_playwright() as p:
             contexto = self._abrir_navegador(p)
             contexto.on("download", self._al_descargar)
             page = contexto.pages[0] if contexto.pages else contexto.new_page()
             self._page = page
             try:
-                return self._pasos(contexto, page, str(cooperador), str(cp), frio, prueba, confirmar)
+                return trabajo(contexto, page)
             except Exception as e:
                 base = self._diagnostico(page, repr(e))
                 texto = str(e) if isinstance(e, ErrorCofares) else \
@@ -252,13 +247,36 @@ class EnvioCofares:
             finally:
                 contexto.close()
 
-    def _pasos(self, contexto, page, cooperador, cp, frio, prueba, confirmar):
+    def _entrar(self, page):
+        """Abre la página de envío de bultos, iniciando sesión si hace falta."""
         self.avisar("Abriendo Cofares…")
         page.goto(self.url)
         page.wait_for_load_state("domcontentloaded")
         self._iniciar_sesion_si_hace_falta(page)
         if "envio-de-bultos" not in page.url:
             page.goto(self.url)
+            page.wait_for_load_state("domcontentloaded")
+
+    def enviar(self, cooperador, cp, frio, prueba=True, confirmar=None):
+        """Hace el envío y devuelve la ruta del PDF (None en modo prueba o si se cancela).
+
+        confirmar(): última pregunta antes de pedir la recogida.
+        """
+        self.sufijo = "_FRIO" if frio else ""
+        self.descargados, self._descargando = [], False
+        return self._con_navegador(lambda contexto, page: self._pasos(
+            contexto, page, str(cooperador), str(cp), frio, prueba, confirmar))
+
+    def historico(self):
+        """HTML de la página de envío de bultos (con el seguimiento de cada envío)."""
+        def leer(contexto, page):
+            self._entrar(page)
+            self.avisar("Leyendo el seguimiento…")
+            return page.content()
+        return self._con_navegador(leer)
+
+    def _pasos(self, contexto, page, cooperador, cp, frio, prueba, confirmar):
+        self._entrar(page)
         previos = set(re.findall(r"envio=(FM\d+)", page.content()))
 
         self._pulsar([page], "^Nuevo env[ií]o$")

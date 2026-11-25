@@ -119,8 +119,12 @@ class App:
                  font=("Segoe UI", 8), fg="#555").pack()
         self.estado = tk.Label(root, text="", font=("Segoe UI", 11, "bold"))
         self.estado.pack(pady=6)
-        tk.Button(root, text="Nuevo envío Cofares…", font=("Segoe UI", 10, "bold"),
-                  bg="#db2777", fg="white", padx=10, command=self.nuevo_envio).pack(pady=(0, 6))
+        cofares = tk.Frame(root)
+        cofares.pack(pady=(0, 6))
+        tk.Button(cofares, text="Nuevo envío Cofares…", font=("Segoe UI", 10, "bold"),
+                  bg="#db2777", fg="white", padx=10, command=self.nuevo_envio).pack(side="left", padx=3)
+        tk.Button(cofares, text="Seguimiento…", font=("Segoe UI", 10),
+                  padx=10, command=self.seguimiento).pack(side="left", padx=3)
 
         self.lista = tk.Listbox(root, height=8, font=("Consolas", 9))
         self.lista.pack(fill="both", expand=True, padx=10)
@@ -305,6 +309,10 @@ class App:
     def nuevo_envio(self):
         from ventana_envio import VentanaEnvio
         VentanaEnvio(self)
+
+    def seguimiento(self):
+        from ventana_seguimiento import VentanaSeguimiento
+        VentanaSeguimiento(self)
 
     def reimprimir(self):
         if self.ultimo and not self.ocupado:

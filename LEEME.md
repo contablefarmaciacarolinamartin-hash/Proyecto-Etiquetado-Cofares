@@ -58,6 +58,18 @@ Si la web de Cofares cambia y algo no encaja, el programa se para (nunca pide do
 recogidas) y guarda una captura y el código de la página en la carpeta
 `diagnostico`, junto al programa: mándalos para ajustarlo.
 
+## Seguimiento de envíos
+
+El botón **Seguimiento…** consulta Cofares (oculto) y muestra en una tabla cada envío
+del histórico de "Envío de Bultos":
+
+- **Enviado** (los tuyos, con el nombre de la farmacia sacado de Magisfor) y
+  **Por recibir** (los que te mandan).
+- Fecha de solicitud, código FM y en qué paso va: *Solicitado → En almacén →
+  En tránsito → En reparto → Entregado*.
+- En **amarillo** los que llevan 3 días o más sin entregarse; en verde los entregados.
+- Se puede **buscar** por farmacia o código y ver **solo los sin entregar**.
+
 ## Instalación (una sola vez)
 
 1. **Driver de la impresora**: la QL-800 ya debe aparecer en Windows con el nombre

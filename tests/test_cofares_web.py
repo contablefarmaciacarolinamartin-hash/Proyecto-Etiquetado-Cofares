@@ -34,6 +34,9 @@ def pagina_envios(recogidas):
         f'{int(r["coop"]):010d}</p><div class="descargar-pdf"><a href="javascript:void(0)" '
         f"onclick=\"descargarPDF('{RUTA}?p_p_resource_id=%2Fenvio%2Fbultos%2FdescargarPDF"
         f"&amp;_enviobultos_envio={r['fm']}')\"><img class=\"ancho-pdf\"></a></div>"
+        + "".join(f'<p class="pSegPed{" active" if n < r.get("pasos", 1) else ""}"><img class="imgSeg">'
+                  f'<span class="pSeg">{paso}</span></p>'
+                  for n, paso in enumerate(["Solicitado", "En almacén", "En tránsito", "En reparto", "Entregado"]))
         for r in reversed(recogidas))
     return f"""<!doctype html><meta charset="utf-8"><title>Envío de Bultos</title>
 <a href="javascript:void(0)" onclick="showDetalle('{EMERGENTE}','altaEnvio')">Nuevo envío</a>
@@ -52,7 +55,7 @@ function showDetalle(url, id) {{
 def web():
     estado = {"sesion": False, "sin_enlace": False, "recogidas": [
         # envío anterior a la misma farmacia: no debe confundirse con el nuevo
-        {"coop": "26542", "fm": "FM0000900000", "hora": "08:00:00"}]}
+        {"coop": "26542", "fm": "FM0000900000", "hora": "08:00:00", "pasos": 5}]}
 
     class Manejador(BaseHTTPRequestHandler):
         def log_message(self, *a):
