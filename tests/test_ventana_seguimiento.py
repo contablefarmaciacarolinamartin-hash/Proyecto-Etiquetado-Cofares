@@ -51,6 +51,13 @@ def test_ventana_muestra_el_seguimiento(tmp_path, monkeypatch):
     ]
     v.filtro.set("mayor")
     assert len(v.tabla.get_children()) == 1
+    v.filtro.set("")
+    v.mostrar.set("Por recibir")
+    v.rellenar()
+    assert [v.tabla.item(i, "values")[2] for i in v.tabla.get_children()] == ["FM0000953714", "FM0000944080"]
+    v.ordenar("fecha")  # misma columna: invierte el orden
+    assert [v.tabla.item(i, "values")[2] for i in v.tabla.get_children()] == ["FM0000944080", "FM0000953714"]
+    v.mostrar.set("Todos")
     if os.environ.get("CAPTURA_SEGUIMIENTO"):
         v.filtro.set("")
         root.deiconify()

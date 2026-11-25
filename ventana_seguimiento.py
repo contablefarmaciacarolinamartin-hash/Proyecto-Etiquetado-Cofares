@@ -21,6 +21,7 @@ class VentanaSeguimiento(tk.Toplevel):
         self.minsize(700, 300)
         self.mensajes = queue.Queue()
         self.envios = []
+        self.orden = ("fecha", True)  # columna y si es descendente
 
         try:
             self.nombres = {f.cooperador: f.nombre for f in leer_farmacias(self.cfg["magisfor"])
@@ -36,6 +37,12 @@ class VentanaSeguimiento(tk.Toplevel):
         self.filtro = tk.StringVar()
         self.filtro.trace_add("write", lambda *a: self.rellenar())
         tk.Entry(arriba, textvariable=self.filtro, width=30).pack(side="left", padx=4)
+        tk.Label(arriba, text="Mostrar:").pack(side="left", padx=(8, 0))
+        self.mostrar = tk.StringVar(value="Todos")
+        selector = ttk.Combobox(arriba, textvariable=self.mostrar, state="readonly", width=12,
+                                values=("Todos", "Enviados", "Por recibir"))
+        selector.pack(side="left", padx=4)
+        selector.bind("<<ComboboxSelected>>", lambda e: self.rellenar())
         self.solo_pendientes = tk.BooleanVar(value=False)
         tk.Checkbutton(arriba, text="Solo sin entregar", variable=self.solo_pendientes,
                        command=self.rellenar).pack(side="left", padx=8)
@@ -48,7 +55,7 @@ class VentanaSeguimiento(tk.Toplevel):
                                    ("fm", "Código", 120), ("farmacia", "Farmacia", 280),
                                    ("estado", "Estado", 160), ("dias", "Días", 50),
                                    ("entrega", "Entregado el", 110)):
-            self.tabla.heading(col, text=titulo)
+            self.tabla.heading(col, text=titulo, command=lambda c=col: self.ordenar(c))
             self.tabla.column(col, width=ancho, minwidth=ancho, anchor="w",
                               stretch=(col == "farmacia"))
         self.tabla.tag_configure("entregado", foreground="#15803d")
@@ -70,10 +77,24 @@ class VentanaSeguimiento(tk.Toplevel):
         nombre = self.nombres.get(e.cooperador)
         return f"{nombre} ({e.cooperador})" if nombre else f"Cooperador {e.cooperador}"
 
+    CLAVES = {"tipo": lambda e: e.tipo, "fecha": lambda e: e.solicitado, "fm": lambda e: e.fm,
+              "estado": lambda e: len(e.pasos), "dias": lambda e: e.dias,
+              "entrega": lambda e: e.fecha_entrega[6:] + e.fecha_entrega[3:5] + e.fecha_entrega[:2]}
+
+    def ordenar(self, columna):
+        col, desc = self.orden
+        self.orden = (columna, not desc if columna == col else columna in ("fecha", "dias"))
+        self.rellenar()
+
     def rellenar(self):
         self.tabla.delete(*self.tabla.get_children())
         texto = self.filtro.get().strip().lower()
-        for e in self.envios:
+        col, desc = self.orden
+        clave = self.CLAVES.get(col) or (lambda e: self.farmacia(e).lower())
+        tipo = {"Enviados": "Enviado", "Por recibir": "Por recibir"}.get(self.mostrar.get())
+        for e in sorted(self.envios, key=clave, reverse=desc):
+            if tipo and e.tipo != tipo:
+                continue
             if self.solo_pendientes.get() and e.entregado:
                 continue
             fila = (e.tipo, e.solicitado.strftime("%d/%m/%Y %H:%M"), e.fm, self.farmacia(e),
