@@ -1,4 +1,5 @@
 """Ventana "Seguimiento": en qué paso va cada envío de Cofares."""
+import os
 import queue
 import threading
 import tkinter as tk
@@ -6,7 +7,7 @@ from tkinter import messagebox, ttk
 
 import credenciales
 from magisfor import ErrorMagisfor, leer_farmacias
-from seguimiento import PASOS, leer_historico
+from seguimiento import PASOS, leer_historico, totales
 
 DIAS_AVISO = 3  # sin entregar después de estos días: se marca en naranja
 
@@ -97,7 +98,15 @@ class VentanaSeguimiento(tk.Toplevel):
                            visible=self.cfg.get("mostrar_navegador", False),
                            avisar=lambda m: self.mensajes.put(("aviso", m)))
         try:
-            self.mensajes.put(("fin", leer_historico(web.historico())))
+            html = web.historico()
+            try:  # la última consulta queda guardada por si hay que revisarla
+                os.makedirs(self.cfg["diagnostico"], exist_ok=True)
+                with open(os.path.join(self.cfg["diagnostico"], "seguimiento_ultimo.html"),
+                          "w", encoding="utf-8") as f:
+                    f.write(html)
+            except OSError:
+                pass
+            self.mensajes.put(("fin", (leer_historico(html), totales(html))))
         except ErrorCofares as e:
             self.mensajes.put(("error", str(e)))
         except Exception as e:
@@ -115,10 +124,17 @@ class VentanaSeguimiento(tk.Toplevel):
                     self.estado.config(text="No se pudo consultar Cofares.", fg="#b91c1c")
                     messagebox.showerror("Seguimiento", dato, parent=self)
                 else:
-                    self.envios = dato
-                    pendientes = sum(not e.entregado for e in dato)
-                    self.estado.config(text=f"{len(dato)} envíos · {pendientes} sin entregar",
-                                       fg="#15803d")
+                    self.envios, segun_cofares = dato
+                    pendientes = sum(not e.entregado for e in self.envios)
+                    texto, color = f"{len(self.envios)} envíos · {pendientes} sin entregar", "#15803d"
+                    leidos = {t: sum(e.tipo == t for e in self.envios) for t in segun_cofares}
+                    faltan = [f"{t}: Cofares dice {n}, leídos {leidos[t]}"
+                              for t, n in segun_cofares.items() if leidos[t] != n]
+                    if faltan:
+                        texto += ("   ⚠ " + "; ".join(faltan) +
+                                  " — manda diagnostico\\seguimiento_ultimo.html")
+                        color = "#b45309"
+                    self.estado.config(text=texto, fg=color)
                     self.rellenar()
                 return
         except queue.Empty:

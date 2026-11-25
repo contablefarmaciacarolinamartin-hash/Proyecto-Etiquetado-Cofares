@@ -41,6 +41,17 @@ def _texto(s):
     return re.sub(r"\s+", " ", html_mod.unescape(re.sub(r"<[^>]+>", " ", s))).strip()
 
 
+def totales(html):
+    """Lo que dice Cofares en cada sección (el número junto a 'Envíos realizados', etc.)."""
+    resultado = {}
+    for titulo, tipo in (("realizados", "Enviado"), ("por recibir", "Por recibir")):
+        m = re.search(rf"Env(?:[ií]|&iacute;)os\s+{titulo}\s*</span>\s*<span[^>]*badge[^>]*>\s*(\d+)",
+                      html, re.I)
+        if m:
+            resultado[tipo] = int(m.group(1))
+    return resultado
+
+
 def leer_historico(html):
     """Lista de Envio a partir del HTML de la página de envío de bultos."""
     envios = []
@@ -50,12 +61,14 @@ def leer_historico(html):
     for n, (inicio, tipo) in enumerate(posiciones):
         fin = posiciones[n + 1][0] if n + 1 < len(posiciones) else len(html)
         seccion = html[inicio:fin]
-        trozos = re.split(r"(?=Env[ií]o solicitado el )", seccion)[1:]
+        trozos = re.split(r"(?=Env(?:[ií]|&iacute;)o\s+solicitado\s+el\s)", seccion)[1:]
         for trozo in trozos:
-            m = re.match(r"Env[ií]o solicitado el (\d{2}/\d{2}/\d{4}) a las (\d{2}:\d{2}:\d{2})"
-                         r" a la farmacia (\d+)", trozo)
+            m = re.match(r"Env(?:[ií]|&iacute;)o\s+solicitado\s+el\s+(\d{1,2})/(\d{1,2})/(\d{4})"
+                         r"(?:\s+a\s+las\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?"
+                         r"(?:\s+(?:a|de)\s+la\s+farmacia\s+(\d+))?", trozo)
             if not m:
                 continue
+            d, mes, a, h, mi, se, coop = m.groups()
             fm = re.search(r"(?:idBulto|envio)=(FM\d+)", trozo) or re.search(r"'(FM\d+)'", trozo)
             pasos = [_texto(p) for p in re.findall(
                 r'<p class="pSegPed active"[^>]*>(.*?)</p>', trozo, re.S)]
@@ -66,8 +79,8 @@ def leer_historico(html):
             envios.append(Envio(
                 tipo=tipo,
                 fm=fm.group(1) if fm else "",
-                solicitado=datetime.strptime(f"{m.group(1)} {m.group(2)}", "%d/%m/%Y %H:%M:%S"),
-                cooperador=str(int(m.group(3))),
+                solicitado=datetime(int(a), int(mes), int(d), int(h or 0), int(mi or 0), int(se or 0)),
+                cooperador=str(int(coop)) if coop else "",
                 pasos=[p for p in pasos if p],
                 fecha_entrega=fecha_entrega,
             ))

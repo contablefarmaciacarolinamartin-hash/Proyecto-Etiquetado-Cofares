@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 
-from seguimiento import leer_historico
+from seguimiento import leer_historico, totales
 
 DATOS = os.path.join(os.path.dirname(__file__), "datos")
 
@@ -45,3 +45,25 @@ def test_historico_desde_la_web(tmp_path):
         assert (e.fm, e.cooperador, e.estado, e.entregado) == ("FM0000900000", "26542", "Entregado", True)
     finally:
         next(gen, None)
+
+
+def test_totales_de_cofares():
+    with open(os.path.join(DATOS, "historico_cofares.html"), encoding="utf-8") as f:
+        assert totales(f.read()) == {"Por recibir": 2}  # el fragmento empieza tras "realizados"
+
+
+@pytest.mark.parametrize("cabecera, cuando, coop", [
+    ("Envío solicitado el 05/11/2026 a las 9:05:03 a la farmacia 0000024145",
+     datetime(2026, 11, 5, 9, 5, 3), "24145"),
+    ("Envío solicitado el 5/11/2026 a las 09:05 a la farmacia 0000024145",
+     datetime(2026, 11, 5, 9, 5), "24145"),
+    ("Env&iacute;o solicitado el 05/11/2026 a las 18:40:58 a la farmacia 0000024145",
+     datetime(2026, 11, 5, 18, 40, 58), "24145"),
+    ("Envío solicitado el 05/11/2026", datetime(2026, 11, 5), ""),
+])
+def test_cabeceras_variadas(cabecera, cuando, coop):
+    html = (f'<div id="collapseBultosRecibidos"><p>{cabecera}</p>'
+            '<p class="pSegPed active"><span>Solicitado</span></p>'
+            "<a onclick=\"showDetalle('x?_enviobultos_idBulto=FM0000000002', 'FM0000000002')\">Ver</a></div>")
+    e, = leer_historico(html)
+    assert (e.tipo, e.solicitado, e.cooperador, e.fm) == ("Por recibir", cuando, coop, "FM0000000002")
